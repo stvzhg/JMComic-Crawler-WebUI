@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>🔖JMComic</title>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+<body>
+
+<div id="page">
+
+    <h1>JMComic Downloader</h1>
+
+    <form id="submissionForm" action="/download">
+        <fieldset>
+
+            <input id="comidId" type="text" name="comidId">
+
+            <button type="submit" id="submitButton"> Submit </button>
+
+        </fieldset>
+    </form>
+
+</div>
+</body>
+</html>
