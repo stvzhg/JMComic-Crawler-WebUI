@@ -1,2 +1,2 @@
 #!/bin/bash
-exec gunicorn -b :5000 --access-logfile - --error-logfile -w 4 - app:app
+exec gunicorn -w 4 -b :5000 --access-logfile - --error-logfile - app:app
