@@ -17,5 +17,5 @@ def download():
     try:
         jmcomic.download_album(id, OPTION)
         return render_template('success.html')
-    finally:
+    except:
         return render_template('error.html')

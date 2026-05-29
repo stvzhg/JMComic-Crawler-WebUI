@@ -4,3 +4,4 @@ download:
     suffix: .png
 dir_rule:
   base_dir: ./data
+  rule: Bd / {Aid}-{Ptitle}
