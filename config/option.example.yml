@@ -1,0 +1,194 @@
+# =============================================================================
+# JMComic Crawler — Full Configuration Reference
+# =============================================================================
+#
+# Copy this file to option.yml and customize it.
+# Every key is optional — only include what you want to override.
+# Environment variables can be referenced with ${VAR_NAME} syntax.
+#
+# Docs: https://github.com/hect0x7/JMComic-Crawler-Python/blob/master/assets/docs/sources/option_file_syntax.md
+# =============================================================================
+
+# -------------------------------------------------------------------
+# Logging — set to false to suppress JMComic log output (default: true)
+# -------------------------------------------------------------------
+# log: true
+
+# -------------------------------------------------------------------
+# Client — HTTP client, domain, retry, and cache settings
+# -------------------------------------------------------------------
+# client:
+#   # Backend client implementation.
+#   #   "html" — web scraping (faster, but may be IP-restricted)
+#   #   "api"  — APP API (better compatibility, no IP restriction)
+#   # Default: auto-selected by the library
+#   impl: api
+#
+#   # Domain list per client type. First domain is tried first; on repeated
+#   # failure, fallback domains are used in order.
+#   domain:
+#     html:
+#       - 18comic.vip
+#       - 18comic.org
+#     api:
+#       - www.jmapiproxyxxx.vip
+#
+#   # Number of retries on request failure (default: 5)
+#   retry_times: 5
+#
+#   # Client-level caching (default: null / disabled)
+#   #   true | "level_option"  — same cache across clients from same option
+#   #   "level_client"         — each client has its own cache
+#   cache: null
+#
+#   postman:
+#     meta_data:
+#       # HTTP proxy (default: "system")
+#       #   "system"          — use system proxy settings
+#       #   null              — no proxy
+#       #   "clash" | "v2ray" — common proxy tools
+#       #   "127.0.0.1:7890"  — custom proxy address
+#       proxies: system
+#
+#       # Authentication cookies. Only the AVS cookie is typically needed.
+#       # Must match the domain being accessed.
+#       cookies:
+#         AVS: your_cookie_here
+
+# -------------------------------------------------------------------
+# Download — image processing, caching, and threading
+# -------------------------------------------------------------------
+download:
+  # Skip download if file already exists on disk (default: true)
+  # cache: true
+
+  image:
+    # De-obfuscate JM's scrambled images (default: true)
+    # decode: true
+
+    # Convert all images to this format.
+    #   null    — keep original format
+    #   ".jpg"  — convert to JPEG
+    #   ".png"  — convert to PNG
+    suffix: .png
+
+  # threading:
+    # Number of simultaneous image downloads (default: 30, max ~50)
+    # image: 30
+
+    # Number of simultaneous chapter downloads (default: CPU thread count)
+    # photo: 8
+
+# -------------------------------------------------------------------
+# Directory Rule — file/folder structure for downloaded albums
+# -------------------------------------------------------------------
+dir_rule:
+  # Root download directory. Supports ${VAR_NAME} env var references.
+  base_dir: ./data
+
+  # Folder naming DSL. Starts with "Bd" (root), uses "/" or "_" as separators.
+  #
+  # Album properties (Axxx):   Aid, Atitle, Aauthor, Aauthoroname, Aalias_cn,
+  #                             Aalias_en, Adistinct_episode, Aidoname
+  # Photo/chapter props (Pxxx): Ptitle, Pindex, Pname, Pid
+  #
+  # Example patterns:
+  #   "Bd / Ptitle"                          — root / chapter_title
+  #   "Bd_Aid_Pindex"                        — root_albumID_chapterIndex
+  #   "Bd / Aauthor / (JM{Aid}-{Pindex})"    — root / author / custom folder
+  rule: Bd / {Aid}-{Ptitle}
+
+  # Convert Chinese folder names between simplified and traditional.
+  #   null     — no conversion (default)
+  #   "zh-cn"  — convert to simplified Chinese
+  #   "zh-tw"  — convert to traditional Chinese
+  # Requires the optional zhconv library.
+  # normalize_zh: null
+
+# -------------------------------------------------------------------
+# Plugins — lifecycle hooks at various points of the download process
+# -------------------------------------------------------------------
+#
+# Plugin configs support ${VAR_NAME} env var references in kwargs.
+# Each plugin can set `log: false` to silence its output.
+#
+# plugins:
+#
+#   # --- Run after initialization ---
+#   after_init:
+#     # Real-time hardware usage monitor
+#     # - usage_log:
+#     #     enable_warning: true
+#     #     interval: 5
+#
+#     # Authenticate with username + password
+#     # - login:
+#     #     username: "${JM_USERNAME}"
+#     #     password: "${JM_PASSWORD}"
+#
+#     # Download only new chapters after a given photo ID
+#     # - find_update:
+#     #     album_id: photo_id_threshold
+#
+#     # Only download images with specific suffixes
+#     # - image_suffix_filter:
+#     #     allowed_orig_suffix:
+#     #       - .gif
+#
+#     # String replacement in download folder paths
+#     # - replace_path_string:
+#     #     replace:
+#     #       old_string: new_string
+#
+#     # Launch a Flask web server to browse downloaded albums
+#     # - jm_server:
+#     #     password: "${JM_SERVER_PASSWORD}"
+#     #     base_dir: ./data
+#
+#   # --- Run before downloading an album ---
+#   before_album:
+#     # Download album cover image
+#     # - download_cover:
+#     #     size: "_3x4"
+#
+#   # --- Run after an album finishes downloading ---
+#   after_album:
+#     # Zip the entire album into one archive
+#     # - zip:
+#     #     zip_dir: ./data
+#     #     suffix: zip          # "zip" or "7z"
+#     #     delete_original_file: false
+#     #     dir_rule:
+#     #       rule: Bd / {Aid}-{Ptitle} Zip
+#     #       base_dir: ./data
+#
+#     # Remove duplicate files (by MD5)
+#     # - delete_duplicated_files:
+#     #     limit: 100
+#     #     delete_original_file: false
+#
+#     # Send QQ email notification on completion
+#     # - send_qq_email:
+#     #     msg_from: "${EMAIL}"
+#     #     msg_to: "${EMAIL}"
+#     #     password: "${EMAIL_PASSWORD}"
+#     #     title: "Download Complete"
+#     #     content: "Album downloaded successfully."
+#
+#   # --- Run before a chapter downloads ---
+#   before_photo:
+#     # Skip chapters with too few images (e.g., announcements)
+#     # - skip_photo_with_few_images:
+#     #     at_least_image_count: 3
+#
+#   # --- Run after a chapter completes ---
+#   after_photo:
+#     # Merge chapter images into a PDF
+#     # - img2pdf:
+#     #     pdf_dir: ./data
+#     #     filename_rule: "{Aid}-{Pindex}.pdf"
+#
+#     # Merge all chapter images into a single long PNG
+#     # - long_img:
+#     #     img_dir: ./data
+#     #     filename_rule: "{Aid}-{Pindex}.png"
