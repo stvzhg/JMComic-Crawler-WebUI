@@ -47,6 +47,6 @@ jobs:
         uses: peter-evans/dockerhub-description@v4
         with:
           username: ${{ vars.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
           repository: ${{ vars.DOCKER_USERNAME }}/jmcomic-downloader
           readme-filepath: ./README.md
