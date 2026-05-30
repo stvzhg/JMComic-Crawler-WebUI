@@ -28,10 +28,40 @@
                     autocomplete="off"
                 >
                 <button type="submit" id="submitButton">Download</button>
+                <button type="button" id="previewButton">Preview</button>
             </fieldset>
         </form>
 
-        <!-- Loading state: shown during download -->
+        <!-- Loading state: shown during download or preview fetch -->
+        <div id="loading" class="hidden" role="status" aria-live="polite">
+            <div class="spinner" aria-hidden="true"></div>
+            <p id="loadingText">Loading, please wait&hellip;</p>
+        </div>
+
+        <!-- Preview card: shows album metadata before downloading -->
+        <div id="preview" class="hidden">
+            <div class="preview-card">
+                <img id="previewCover" class="preview-cover" src="" alt="Album cover" />
+                <div class="preview-info">
+                    <h2 id="previewTitle"></h2>
+                    <p id="previewAuthors"></p>
+                    <div id="previewTags" class="tag-list"></div>
+                    <p id="previewDescription"></p>
+                    <div class="preview-stats">
+                        <span id="previewViews"></span>
+                        <span id="previewLikes"></span>
+                        <span id="previewPages"></span>
+                        <span id="previewChapters"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="preview-actions">
+                <button type="button" id="previewDownloadButton">Download</button>
+                <button type="button" id="previewCancelButton">Cancel</button>
+            </div>
+        </div>
+
+        <!-- Result state: shown after download completes -->
         <div id="loading" class="hidden" role="status" aria-live="polite">
             <div class="spinner" aria-hidden="true"></div>
             <p id="loadingText">Downloading, please wait&hellip;</p>

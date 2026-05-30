@@ -3,6 +3,7 @@ import shutil
 from flask import Flask, request, jsonify
 from flask import render_template
 import jmcomic
+from jmcomic.jm_toolkit import JmcomicText
 
 app = Flask(__name__)
 
@@ -45,6 +46,37 @@ def api_download():
             'message': f'Album "{album_title}" downloaded successfully.',
             'album_title': album_title,
             'album_id': comic_id,
+        })
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@app.route('/api/preview', methods=['POST'])
+def api_preview():
+    """Fetch album metadata without downloading."""
+    data = request.get_json(silent=True)
+    comic_id = (data or {}).get('comic_id', '').strip()
+
+    if not comic_id:
+        return jsonify({'status': 'error', 'message': 'No comic ID provided'}), 400
+
+    try:
+        client = OPTION.build_jm_client()
+        album = client.get_album_detail(comic_id)
+        cover_url = JmcomicText.get_album_cover_url(comic_id)
+
+        return jsonify({
+            'status': 'success',
+            'album_id': album.album_id,
+            'title': album.name,
+            'authors': album.authors,
+            'tags': album.tags,
+            'description': album.description or '',
+            'views': album.views,
+            'likes': album.likes,
+            'page_count': album.page_count,
+            'chapter_count': len(album),
+            'cover_url': cover_url,
         })
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500

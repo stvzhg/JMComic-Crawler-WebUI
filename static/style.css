@@ -220,6 +220,163 @@ fieldset {
     background-color: var(--color-btn-hover);
 }
 
+/* ====== Preview Button ====== */
+#previewButton {
+    width: 100%;
+    height: 3rem;
+    border: 2px solid var(--color-btn);
+    border-radius: var(--radius);
+    background-color: transparent;
+    color: var(--color-text);
+    font-size: var(--font-base);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: background-color 0.2s ease, opacity 0.2s ease;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+#previewButton:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+#previewButton:active {
+    transform: scale(0.98);
+}
+
+#previewButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ====== Preview Card ====== */
+#preview {
+    background-color: var(--color-surface);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-top: var(--spacing-lg);
+}
+
+.preview-card {
+    display: flex;
+    flex-direction: column;
+    padding: var(--spacing-md);
+    gap: var(--spacing-md);
+}
+
+.preview-cover {
+    width: 100%;
+    max-width: 240px;
+    align-self: center;
+    border-radius: calc(var(--radius) / 2);
+    background-color: rgba(0, 0, 0, 0.2);
+    object-fit: cover;
+    aspect-ratio: 3/4;
+}
+
+.preview-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    min-width: 0;
+}
+
+#previewTitle {
+    font-size: var(--font-lg);
+    font-weight: 700;
+    line-height: 1.3;
+    word-break: break-word;
+}
+
+#previewAuthors {
+    font-size: var(--font-sm);
+    opacity: 0.85;
+}
+
+/* Tag pills */
+.tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.tag-pill {
+    display: inline-block;
+    padding: 0.2rem 0.65rem;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    background-color: rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+#previewDescription {
+    font-size: var(--font-sm);
+    line-height: 1.6;
+    opacity: 0.8;
+    word-break: break-word;
+}
+
+.preview-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.25rem;
+    font-size: var(--font-sm);
+    opacity: 0.75;
+    margin-top: auto;
+    padding-top: var(--spacing-sm);
+}
+
+.preview-stats span:empty {
+    display: none;
+}
+
+/* Preview action buttons */
+.preview-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    padding: 0 var(--spacing-md) var(--spacing-md);
+}
+
+#previewDownloadButton,
+#previewCancelButton {
+    flex: 1;
+    height: 2.75rem;
+    border: none;
+    border-radius: var(--radius);
+    font-size: var(--font-base);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+#previewDownloadButton {
+    background-color: var(--color-success);
+    color: #fff;
+}
+
+#previewDownloadButton:hover {
+    background-color: #4a9e4a;
+}
+
+#previewCancelButton {
+    background-color: transparent;
+    color: var(--color-text);
+    border: 2px solid rgba(255, 255, 255, 0.25);
+}
+
+#previewCancelButton:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
 /* ====== Fallback Page Links (success.html / error.html) ====== */
 .back-link {
     display: inline-block;
@@ -266,6 +423,12 @@ fieldset {
         padding: 0 1.5rem;
     }
 
+    #previewButton {
+        width: auto;
+        min-width: 7rem;
+        padding: 0 1.25rem;
+    }
+
     #submissionForm {
         padding: var(--spacing-xl);
     }
@@ -276,6 +439,18 @@ fieldset {
 
     #resultMessage {
         font-size: var(--font-lg);
+    }
+
+    /* Preview card: horizontal layout */
+    .preview-card {
+        flex-direction: row;
+        padding: var(--spacing-lg);
+    }
+
+    .preview-cover {
+        max-width: 200px;
+        align-self: flex-start;
+        flex-shrink: 0;
     }
 }
 
@@ -299,6 +474,11 @@ fieldset {
         height: 3.5rem;
         font-size: var(--font-lg);
     }
+
+    #previewButton {
+        height: 3.5rem;
+        font-size: var(--font-lg);
+    }
 }
 
 /* ====== Reduced Motion ====== */
@@ -313,6 +493,9 @@ fieldset {
 
     #submitButton,
     #resetButton,
+    #previewButton,
+    #previewDownloadButton,
+    #previewCancelButton,
     .back-link {
         transition: none;
     }
