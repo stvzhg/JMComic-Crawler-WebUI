@@ -77,6 +77,8 @@ class ProgressDownloader(jmcomic.JmDownloader):
         self._write_interval = 3
         self._downloaded_pages = 0
         self._last_written_pages = 0
+        # Lock for thread-safe total_pages accumulation (photos processed in parallel)
+        self._lock = threading.Lock()
 
     def _update_task(self, **kwargs):
         """Read-modify-write the task file atomically."""
@@ -86,12 +88,26 @@ class ProgressDownloader(jmcomic.JmDownloader):
 
     def before_album(self, album):
         super().before_album(album)
+        api_total = getattr(album, 'page_count', 0) or 0
         self._update_task(
-            total_pages=getattr(album, 'page_count', 0) or 0,
+            total_pages=api_total,
             total_chapters=len(album),
             album_title=getattr(album, 'name', '') or getattr(album, 'title', ''),
             status='downloading',
         )
+
+    def before_photo(self, photo):
+        """Called after check_photo() populates page_arr — len(photo) works."""
+        super().before_photo(photo)
+        photo_pages = len(photo)
+        if photo_pages <= 0:
+            return
+        with self._lock:
+            task = _read_task(self._task_id)
+            if task is None:
+                return
+            task['total_pages'] = task.get('total_pages', 0) + photo_pages
+            _write_task(self._task_id, task)
 
     def after_image(self, image, img_save_path):
         super().after_image(image, img_save_path)

@@ -63,6 +63,9 @@ class MockJmDownloader:
     def before_album(self, album):
         pass
 
+    def before_photo(self, photo):
+        pass
+
     def after_image(self, image, img_save_path):
         pass
 
@@ -316,6 +319,43 @@ class TestProgressDownloader:
         self.downloader.before_album(album)
         task = _read_task(self.task_id)
         assert task['total_pages'] == 0
+
+    def test_before_photo_accumulates_total_pages(self, mock_photo):
+        """When page_count is 0 from API, before_photo accumulates the real count."""
+        mock_photo.__len__ = mock.MagicMock(return_value=15)
+        self.downloader.before_photo(mock_photo)
+        task = _read_task(self.task_id)
+        # total_pages was 0 from before_album, now accumulated from photo
+        assert task['total_pages'] == 15
+
+    def test_before_photo_skips_zero_length_photo(self, mock_photo):
+        """Photos with 0 pages (e.g. not yet checked) are skipped."""
+        mock_photo.__len__ = mock.MagicMock(return_value=0)
+        self.downloader.before_photo(mock_photo)
+        task = _read_task(self.task_id)
+        assert task['total_pages'] == 0  # unchanged
+
+    def test_before_photo_task_not_found_is_noop(self, mock_photo):
+        """If the task file was deleted, before_photo should not crash."""
+        mock_photo.__len__ = mock.MagicMock(return_value=10)
+        os.remove(_task_path(self.task_id))
+        self.downloader.before_photo(mock_photo)
+        # Should not raise
+
+    def test_before_photo_multiple_photos_accumulate(self):
+        """Multiple before_photo calls accumulate total correctly."""
+        p1 = mock.MagicMock()
+        p1.__len__ = mock.MagicMock(return_value=10)
+        p2 = mock.MagicMock()
+        p2.__len__ = mock.MagicMock(return_value=20)
+        p3 = mock.MagicMock()
+        p3.__len__ = mock.MagicMock(return_value=5)
+
+        self.downloader.before_photo(p1)
+        self.downloader.before_photo(p2)
+        self.downloader.before_photo(p3)
+        task = _read_task(self.task_id)
+        assert task['total_pages'] == 35
 
     def test_after_image_increments_and_debounces(self, mock_image):
         self.downloader._last_written_pages = 0
