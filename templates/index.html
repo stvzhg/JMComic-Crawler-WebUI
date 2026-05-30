@@ -61,10 +61,15 @@
             </div>
         </div>
 
-        <!-- Result state: shown after download completes -->
-        <div id="loading" class="hidden" role="status" aria-live="polite">
-            <div class="spinner" aria-hidden="true"></div>
-            <p id="loadingText">Downloading, please wait&hellip;</p>
+        <!-- Download progress: progress bar + counters shown during download -->
+        <div id="progress" class="hidden" role="status" aria-live="polite">
+            <div class="progress-container">
+                <p id="progressTitle" class="progress-title"></p>
+                <div class="progress-bar-track">
+                    <div id="progressBar" class="progress-bar-fill"></div>
+                </div>
+                <p id="progressStats" class="progress-stats"></p>
+            </div>
         </div>
 
         <!-- Result state: shown after download completes -->

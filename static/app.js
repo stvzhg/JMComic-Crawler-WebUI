@@ -14,7 +14,7 @@
     // Preview card elements
     var preview = document.getElementById('preview');
     var previewCover = document.getElementById('previewCover');
-    var previewTitle = document.getElementById('previewTitle');
+    var previewTitleEl = document.getElementById('previewTitle');
     var previewAuthors = document.getElementById('previewAuthors');
     var previewTags = document.getElementById('previewTags');
     var previewDescription = document.getElementById('previewDescription');
@@ -25,9 +25,29 @@
     var previewDownloadBtn = document.getElementById('previewDownloadButton');
     var previewCancelBtn = document.getElementById('previewCancelButton');
 
+    // Progress elements
+    var progress = document.getElementById('progress');
+    var progressBar = document.getElementById('progressBar');
+    var progressTitle = document.getElementById('progressTitle');
+    var progressStats = document.getElementById('progressStats');
+
     // If any required element is missing, bail out (graceful degradation)
     if (!form || !loading || !result || !resetButton || !submitButton || !comicIdInput) {
         return;
+    }
+
+    // Track polling state
+    var pollTimer = null;
+    var pollStartTime = 0;
+
+    /**
+     * Stop any active progress polling.
+     */
+    function stopPolling() {
+        if (pollTimer) {
+            clearInterval(pollTimer);
+            pollTimer = null;
+        }
     }
 
     /**
@@ -35,13 +55,47 @@
      * @param {string} [message='Loading, please wait…']
      */
     function showLoading(message) {
+        stopPolling();
         form.classList.add('hidden');
         result.classList.add('hidden');
         if (preview) { preview.classList.add('hidden'); }
+        if (progress) { progress.classList.add('hidden'); }
         loadingText.textContent = message || 'Loading, please wait…';
         loading.classList.remove('hidden');
         submitButton.disabled = true;
         if (previewButton) { previewButton.disabled = true; }
+    }
+
+    /**
+     * Transition UI to the progress state.
+     */
+    function showProgressView() {
+        loading.classList.add('hidden');
+        result.classList.add('hidden');
+        if (preview) { preview.classList.add('hidden'); }
+        progressTitle.textContent = 'Downloading…';
+        progressBar.style.width = '0%';
+        progressStats.textContent = '0 / ? pages  |  0 / ? chapters';
+        if (progress) { progress.classList.remove('hidden'); }
+    }
+
+    /**
+     * Update the progress bar and counters from polled task data.
+     * @param {object} data — response from GET /api/progress/<task_id>
+     */
+    function updateProgress(data) {
+        var pct = data.total_pages > 0
+            ? Math.round((data.downloaded_pages / data.total_pages) * 100)
+            : 0;
+        progressBar.style.width = Math.min(pct, 100) + '%';
+
+        if (data.album_title) {
+            progressTitle.textContent = data.album_title;
+        }
+
+        var pagesText = data.downloaded_pages + ' / ' + (data.total_pages || '?') + ' pages';
+        var chaptersText = data.downloaded_chapters + ' / ' + (data.total_chapters || '?') + ' chapters';
+        progressStats.textContent = pagesText + '  |  ' + chaptersText;
     }
 
     /**
@@ -50,22 +104,75 @@
      * @param {string} message
      */
     function showResult(status, message) {
+        stopPolling();
         loading.classList.add('hidden');
         if (preview) { preview.classList.add('hidden'); }
+        if (progress) { progress.classList.add('hidden'); }
         resultMessage.textContent = message;
         resultMessage.className = status;
         result.classList.remove('hidden');
     }
 
     /**
+     * Poll GET /api/progress/<task_id> every second until done or error.
+     * @param {string} taskId
+     */
+    function pollProgress(taskId) {
+        stopPolling();
+        pollStartTime = Date.now();
+
+        pollTimer = setInterval(function () {
+            fetch('/api/progress/' + taskId)
+                .then(function (response) {
+                    if (!response.ok) {
+                        // 404: task not found (cleanup, different worker, crash, etc.)
+                        var elapsed = (Date.now() - pollStartTime) / 1000;
+                        if (elapsed > 15) {
+                            // We've been polling for a while — task likely expired
+                            stopPolling();
+                            showResult('error',
+                                'Download status unavailable. The task may have expired. ' +
+                                'Check the data folder — the download may still have completed.'
+                            );
+                        }
+                        // If we haven't been polling long, ignore transient 404s
+                        return null;
+                    }
+                    return response.json();
+                })
+                .then(function (data) {
+                    if (!data) { return; }
+
+                    if (data.status === 'done') {
+                        stopPolling();
+                        if (progress) { progress.classList.add('hidden'); }
+                        showResult('success', data.message || 'Download complete.');
+                    } else if (data.status === 'error') {
+                        stopPolling();
+                        if (progress) { progress.classList.add('hidden'); }
+                        showResult('error', 'Download failed: ' + (data.message || 'Unknown error'));
+                    } else if (data.status === 'downloading' || data.status === 'starting') {
+                        updateProgress(data);
+                    }
+                })
+                .catch(function (err) {
+                    // Network flakiness — keep polling, the interval will retry
+                    console.error('Progress poll error:', err);
+                });
+        }, 1000);
+    }
+
+    /**
      * Reset the UI back to the initial form state.
      */
     function resetUI() {
+        stopPolling();
         comicIdInput.value = '';
         submitButton.disabled = false;
         if (previewButton) { previewButton.disabled = false; }
         result.classList.add('hidden');
         if (preview) { preview.classList.add('hidden'); }
+        if (progress) { progress.classList.add('hidden'); }
         form.classList.remove('hidden');
         comicIdInput.focus();
     }
@@ -82,7 +189,7 @@
         previewCover.alt = 'Cover for ' + (data.title || data.album_id);
 
         // Title
-        previewTitle.textContent = data.title || data.album_id;
+        previewTitleEl.textContent = data.title || data.album_id;
 
         // Authors
         if (data.authors && data.authors.length) {
@@ -122,11 +229,11 @@
     }
 
     /**
-     * Start the download for the given comic ID.
+     * Start a download (background task + progress polling).
      * @param {string} comicId
      */
     function startDownload(comicId) {
-        showLoading('Downloading, please wait…');
+        showLoading('Starting download…');
 
         fetch('/api/download', {
             method: 'POST',
@@ -139,10 +246,11 @@
                 });
             })
             .then(function (result) {
-                if (result.data.status === 'success') {
-                    showResult('success', result.data.message);
+                if (result.data.status === 'accepted') {
+                    showProgressView();
+                    pollProgress(result.data.task_id);
                 } else {
-                    showResult('error', 'Download failed: ' + (result.data.message || 'Unknown error'));
+                    showResult('error', result.data.message || 'Failed to start download');
                 }
             })
             .catch(function (err) {
