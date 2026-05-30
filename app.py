@@ -1,10 +1,26 @@
+import os
+import shutil
 from flask import Flask, request, jsonify
 from flask import render_template
 import jmcomic
 
 app = Flask(__name__)
 
-OPTION = jmcomic.create_option_by_file('config/option.yml')
+# Ensure a working config exists: copy the example if option.yml is missing
+CONFIG_PATH = 'config/option.yml'
+EXAMPLE_CONFIG_PATH = 'option.example.yml'
+
+if not os.path.isfile(CONFIG_PATH):
+    if os.path.isfile(EXAMPLE_CONFIG_PATH):
+        os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
+        shutil.copyfile(EXAMPLE_CONFIG_PATH, CONFIG_PATH)
+        print(f'Created {CONFIG_PATH} from {EXAMPLE_CONFIG_PATH}')
+    else:
+        print(f'Warning: neither {CONFIG_PATH} nor {EXAMPLE_CONFIG_PATH} found, '
+              f'falling back to JMComic defaults')
+
+OPTION = jmcomic.create_option_by_file(CONFIG_PATH) if os.path.isfile(CONFIG_PATH) \
+    else jmcomic.create_option_by_str('{}')
 
 
 @app.route("/")

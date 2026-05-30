@@ -1,7 +1,7 @@
 # JMComic Crawler Configuration
 # Reference: https://github.com/hect0x7/JMComic-Crawler-Python/blob/master/assets/docs/sources/option_file_syntax.md
 #
-# Copy config/option.example.yml and edit it to customize your setup.
+# Copy option.example.yml (in repo root) and edit it to customize your setup.
 # Only include keys you want to override; all options have sensible defaults.
 
 # --- Download settings ---

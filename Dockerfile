@@ -5,7 +5,10 @@ COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 RUN pip install gunicorn
 
-# Copy default config (override by mounting: -v ./config:/config)
+# Copy example config to root (outside /config volume so it survives mounts)
+COPY option.example.yml ./
+
+# Copy default config directory (override by mounting: -v ./config:/config)
 COPY config config
 # User-mountable volumes for persistent data and custom config
 VOLUME /data
