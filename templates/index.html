@@ -1,28 +1,50 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>🔖JMComic</title>
-
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JMComic Downloader</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+    <main id="page">
 
-<div id="page">
+        <h1>JMComic Downloader</h1>
 
-    <h1>JMComic Downloader</h1>
+        <!--
+            Form submits to /download via GET for no-JS fallback.
+            When JavaScript is enabled, app.js intercepts the submit event
+            and calls POST /api/download instead.
+        -->
+        <form id="submissionForm" action="/download" method="get">
+            <fieldset>
+                <label for="comicId" class="sr-only">Album ID</label>
+                <input
+                    id="comicId"
+                    type="text"
+                    name="comicId"
+                    placeholder="Enter album ID (e.g. 123456)"
+                    required
+                    autocomplete="off"
+                >
+                <button type="submit" id="submitButton">Download</button>
+            </fieldset>
+        </form>
 
-    <form id="submissionForm" action="/download">
-        <fieldset>
+        <!-- Loading state: shown during download -->
+        <div id="loading" class="hidden" role="status" aria-live="polite">
+            <div class="spinner" aria-hidden="true"></div>
+            <p id="loadingText">Downloading, please wait&hellip;</p>
+        </div>
 
-            <input id="comidId" type="text" name="comidId">
+        <!-- Result state: shown after download completes -->
+        <div id="result" class="hidden" role="alert">
+            <p id="resultMessage"></p>
+            <button type="button" id="resetButton">Download Another</button>
+        </div>
 
-            <button type="submit" id="submitButton"> Submit </button>
+    </main>
 
-        </fieldset>
-    </form>
-
-</div>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>

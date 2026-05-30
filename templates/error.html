@@ -1,26 +1,31 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>🔖JMComic</title>
-
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JMComic — Error</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+    <main id="page">
 
-<div id="page">
+        <h1>Download Failed</h1>
 
-    <h1>Download Failed!</h1>
+        <div id="submissionForm">
+            {% if message %}
+            <p style="text-align:center;font-size:var(--font-base);color:var(--color-error);margin-bottom:var(--spacing-md);word-break:break-word;">
+                {{ message }}
+            </p>
+            {% else %}
+            <p style="text-align:center;font-size:var(--font-lg);margin-bottom:var(--spacing-md);">
+                An unknown error occurred.
+            </p>
+            {% endif %}
+            <p style="text-align:center;">
+                <a href="/" class="back-link">Try Again</a>
+            </p>
+        </div>
 
-    <form id="submissionForm" action="/">
-        <fieldset>
-
-            <button type="submit" id="submitButton"> Go back </button>
-
-        </fieldset>
-    </form>
-
-</div>
+    </main>
 </body>
 </html>
