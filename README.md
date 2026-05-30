@@ -71,3 +71,16 @@ flask run
 ```
 
 Tech stack: Flask + Jinja2 + vanilla JS. No frontend framework. CSS is mobile-first with a single breakpoint at 600px.
+
+### Tests
+
+```bash
+# Install test dependencies
+pip install pytest pytest-cov
+
+# Run all tests
+pytest tests/ -v
+
+# Run with coverage report
+pytest tests/ --cov=app --cov-report=term-missing --cov-branch
+```

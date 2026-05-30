@@ -75,6 +75,7 @@ class ProgressDownloader(jmcomic.JmDownloader):
         self._task_id = ProgressDownloader._current_task_id
         # Debounce file writes: only flush every N images
         self._write_interval = 3
+        self._downloaded_pages = 0
         self._last_written_pages = 0
 
     def _update_task(self, **kwargs):
@@ -94,15 +95,15 @@ class ProgressDownloader(jmcomic.JmDownloader):
 
     def after_image(self, image, img_save_path):
         super().after_image(image, img_save_path)
-        task = _read_task(self._task_id)
-        if task is None:
+        if _read_task(self._task_id) is None:
             return
-        downloaded = task.get('downloaded_pages', 0) + 1
+        self._downloaded_pages += 1
         # Debounce: write to disk every _write_interval images
-        if downloaded - self._last_written_pages >= self._write_interval:
-            task['downloaded_pages'] = downloaded
+        if self._downloaded_pages - self._last_written_pages >= self._write_interval:
+            task = _read_task(self._task_id) or {}
+            task['downloaded_pages'] = self._downloaded_pages
             _write_task(self._task_id, task)
-            self._last_written_pages = downloaded
+            self._last_written_pages = self._downloaded_pages
 
     def after_photo(self, photo):
         super().after_photo(photo)
@@ -112,7 +113,7 @@ class ProgressDownloader(jmcomic.JmDownloader):
         task['downloaded_chapters'] = task.get('downloaded_chapters', 0) + 1
         # Always flush on chapter completion (catches remaining images
         # that didn't hit the debounce threshold in after_image)
-        task['downloaded_pages'] = task.get('downloaded_pages', 0)
+        task['downloaded_pages'] = self._downloaded_pages
         _write_task(self._task_id, task)
 
 
@@ -142,11 +143,17 @@ def _cleanup_old_tasks():
                 if status in ('done', 'error'):
                     finished_at = task.get('finished_at', 0)
                     if now - finished_at > 300:  # 5 min
-                        os.remove(os.path.join(TASKS_DIR, fname))
+                        try:
+                            os.remove(os.path.join(TASKS_DIR, fname))
+                        except OSError:
+                            pass
                 elif status == 'starting':
                     created_at = task.get('created_at', 0)
                     if now - created_at > 600:  # 10 min — likely crashed
-                        os.remove(os.path.join(TASKS_DIR, fname))
+                        try:
+                            os.remove(os.path.join(TASKS_DIR, fname))
+                        except OSError:
+                            pass
         except FileNotFoundError:
             pass
 

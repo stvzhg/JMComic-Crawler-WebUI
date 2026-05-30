@@ -2,4 +2,4 @@
 name = "jmcomic-crawler-webui"
 version = "0.1.0"
 requires-python = ">=3.9"
-dependencies = ["jmcomic", "flask", "gunicorn"]
+dependencies = ["jmcomic", "flask", "gunicorn", "pytest-cov"]
